@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+<!--    <script src="/webjars/sockjs-client/sockjs.min.js"></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<!--    <script src="/webjars/stomp-websocket/stomp.min.js"></script>-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js" integrity="sha512-iKDtgDyTHjAitUDdLljGhenhPwrbBfqTKWO1mkhSFH3A7blITC9MhYon6SjnMhp4o0rADGw9yAC6EW4t5a4K3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+<h2>Home e e</h2>
+<button onclick="connect()">Connect</button>
+<button onclick="send()">Send to all</button>
+
+    <input type="text" id="textToSend" placeholder="text here"/>
+
+<div id="connection"></div>
+<div id="response"></div>
+</body>
+<script>
+    var stompClient = null
+    function connect(){
+        console.log("connect")
+        var socket = new SockJS("myEndpoint")
+        stompClient = Stomp.over(socket)
+        stompClient.connect({}, function (frame){
+            l("connected to Socket")
+            appendDivText("connection", "STOMP client connected")
+            stompClient.subscribe("/topic", function (myResponse){
+                let input = JSON.parse(myResponse.body).response
+                l("received response: " + input)
+                appendDivText("response", input)
+            })
+        })
+    }
+
+    function send(){
+        const txt = document.getElementById('textToSend').value
+        stompClient.send("/myMessage", headers={}, JSON.stringify({message: txt + " message"}))
+    }
+
+    function appendDivText(id, text){
+        var pTag = document.createElement("p");
+        var textNode = document.createTextNode(text);
+        pTag.appendChild(textNode);
+        document.getElementById(id).appendChild(pTag);
+    }
+
+    function l(txt){
+        console.log(txt)
+    }
+</script>
+</html>
